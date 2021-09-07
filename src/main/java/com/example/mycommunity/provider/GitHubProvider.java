@@ -4,13 +4,17 @@ import com.alibaba.fastjson.JSON;
 import com.example.mycommunity.dto.GitHubAccessTokenDTO;
 import com.example.mycommunity.dto.GitHubUser;
 import okhttp3.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
 @Component
 public class GitHubProvider {
-
+    @Value("${github.access.token.url}")
+    private String accessTokenUrl;
+    @Value("${github.user.url}")
+    private String userUrl;
 
     public String getAccessToken(GitHubAccessTokenDTO gitHubAccessTokenDTO){
         MediaType mediaType = MediaType.get("application/json; charset=utf-8");
@@ -18,7 +22,7 @@ public class GitHubProvider {
 
         RequestBody body = RequestBody.create(mediaType, JSON.toJSONString(gitHubAccessTokenDTO));
         Request request = new Request.Builder()
-                .url("https://github.com/login/oauth/access_token")
+                .url(accessTokenUrl)
                 .post(body)
                 .build();
         try (Response response = client.newCall(request).execute()) {
@@ -35,7 +39,7 @@ public class GitHubProvider {
         OkHttpClient client = new OkHttpClient();
 
         Request request = new Request.Builder()
-                .url("https://api.github.com/user")
+                .url(userUrl)
                 .header("Authorization","token "+accessToken)
                 .build();
 
