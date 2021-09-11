@@ -5,6 +5,7 @@ import com.example.mycommunity.dto.GitHubUser;
 import com.example.mycommunity.mapper.UserMapper;
 import com.example.mycommunity.model.User;
 import com.example.mycommunity.provider.GitHubProvider;
+import com.example.mycommunity.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
@@ -28,6 +29,8 @@ public class AuthorizeController {
     private String redirectUrl;
     @Autowired
     private UserMapper userMapper;
+    @Autowired
+    private UserService userService;
 
     @GetMapping("/callback")
     public String callback(@RequestParam(name="code") String code,
@@ -41,6 +44,8 @@ public class AuthorizeController {
         gitHubAccessTokenDTO.setRedirect_uri(redirectUrl);
         gitHubAccessTokenDTO.setState(state);
 
+
+
         String accessToken = gitHubProvider.getAccessToken(gitHubAccessTokenDTO);
         GitHubUser gitHubUser = gitHubProvider.getUser(accessToken);
         if (gitHubUser!=null && gitHubUser.getId()!=null){
@@ -49,15 +54,25 @@ public class AuthorizeController {
             user.setToken(token);
             user.setName(gitHubUser.getName());
             user.setAccountId(String.valueOf(gitHubUser.getId()));
-            user.setGmtCreat(System.currentTimeMillis());
-            user.setGmtModified(user.getGmtCreat());
+
             user.setAvatarUrl(gitHubUser.getAvatar_url());
             httpServletResponse.addCookie(new Cookie("token",token));
-            userMapper.insert(user);
-            httpServletRequest.getSession().setAttribute("user",gitHubUser);
+
+            userService.createOrUpdate(user);
+            //httpServletRequest.getSession().setAttribute("user",gitHubUser);
             return "redirect:/";
         }
 
+        return "redirect:/";
+    }
+    @GetMapping("/logout")
+    public String logout(HttpServletRequest httpServletRequest,
+                         HttpServletResponse httpServletResponse) {
+        //删除cookie和session
+        httpServletRequest.getSession().removeAttribute("user");
+        Cookie cookie = new Cookie("token",null);
+        cookie.setMaxAge(0);
+        httpServletResponse.addCookie(cookie);
         return "redirect:/";
     }
 }

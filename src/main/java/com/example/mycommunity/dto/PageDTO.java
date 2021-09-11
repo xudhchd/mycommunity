@@ -21,13 +21,18 @@ public class PageDTO {
         this.totalPage = totalPage;
 
         if (totalPage < 8) {
+            if (totalPage == 0) {
+                pages.add(1);
+            } else {
+                for (int i = 1; i <= totalPage; i++) {
+                    pages.add(i);
+                }
+            }
             showFirst = false;
             showEnd = false;
             showNext = false;
             showPrevious = false;
-            for (int i = 1; i < totalPage; i++) {
-                pages.add(i);
-            }
+
         }else{
             for (int i = 1; i < 8; i++) {
                 if (page < 4) {
